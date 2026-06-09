@@ -1,0 +1,211 @@
+/* src/pages/LessonsPage.css */
+
+.lessons-page { min-height: 100vh; display: flex; flex-direction: column; }
+.lessons-page .section { flex: 1; }
+
+/* ===== Category filter ===== */
+.cat-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 44px;
+}
+
+.cat-btn {
+  background: var(--white);
+  border: 2px solid var(--gray-200);
+  color: var(--gray-600);
+  padding: 10px 24px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.cat-btn.active,
+.cat-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--white);
+}
+
+/* ===== Lessons grid ===== */
+.lessons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+/* ===== Lesson card ===== */
+.lesson-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--gray-200);
+  transition: all 0.3s;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+
+.lesson-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary);
+}
+
+/* Thumbnail */
+.lesson-thumb {
+  height: 185px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.lesson-icon {
+  font-size: 70px;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+  z-index: 1;
+}
+
+.lesson-badge {
+  position: absolute;
+  top: 14px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  color: var(--white);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 2;
+}
+
+body.lang-ar .lesson-badge { right: 14px; }
+body.lang-en .lesson-badge,
+body.lang-es .lesson-badge { left: 14px; }
+
+.lesson-badge[data-cat="medical"]  { background: rgba(239, 68, 68, 0.85); }
+.lesson-badge[data-cat="grammar"]  { background: rgba(37, 99, 235, 0.85); }
+.lesson-badge[data-cat="vocab"]    { background: rgba(16, 185, 129, 0.85); }
+.lesson-badge[data-cat="sounds"]   { background: rgba(245, 158, 11, 0.85); }
+
+.premium-badge {
+  position: absolute;
+  bottom: 14px;
+  background: rgba(245, 158, 11, 0.9);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  z-index: 2;
+}
+
+body.lang-ar .premium-badge { left: 14px; }
+body.lang-en .premium-badge,
+body.lang-es .premium-badge { right: 14px; }
+
+/* Body */
+.lesson-body {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.lesson-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.lesson-desc {
+  font-size: 13px;
+  color: var(--gray-600);
+  line-height: 1.65;
+  margin-bottom: 16px;
+  flex: 1;
+}
+
+.lesson-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lesson-meta-info {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--gray-400);
+  flex-wrap: wrap;
+}
+
+/* TTS button on card */
+.tts-btn {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--primary), var(--accent2));
+  border: none;
+  border-radius: 50%;
+  color: var(--white);
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.tts-btn:hover { transform: scale(1.1); }
+
+.tts-btn.speaking {
+  background: linear-gradient(135deg, var(--warning), #f97316);
+  animation: tts-pulse 1s infinite;
+}
+
+@keyframes tts-pulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.15); }
+}
+
+/* Empty state */
+.no-lessons {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--gray-500);
+  font-size: 16px;
+}
+
+.no-lessons p { margin-top: 16px; }
+
+@media (max-width: 768px) {
+  .lessons-grid { grid-template-columns: 1fr; }
+}
+
+
+
+.line-tts-btn {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(135deg, var(--primary), var(--accent2));
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: opacity 0.2s, transform 0.2s;
+  margin-top: 2px;
+}
+.line-tts-btn:hover { opacity: 1; transform: scale(1.1); }

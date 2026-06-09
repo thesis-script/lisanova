@@ -1,0 +1,12 @@
+/* src/components/AuthModal.css */
+/* All modal base styles are in globals.css */
+/* Additional overrides here */
+
+.modal-box {
+  animation: modalIn 0.25s ease;
+}
+
+@keyframes modalIn {
+  from { transform: translateY(30px) scale(0.97); opacity: 0; }
+  to   { transform: translateY(0)    scale(1);    opacity: 1; }
+}
