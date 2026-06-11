@@ -84,7 +84,7 @@ export default function AuthModal({ modal, closeModal, t, login, signup, subscri
                 onClick={() => setPlan('basic')}
               >
                 <h4>{t('plan_basic')}</h4>
-                <div className="plan-price">$4.99<span>{t('per_month')}</span></div>
+                <div className="plan-price">$50<span>{t('per_month')}</span></div>
                 <p>{t('plan_basic_desc')}</p>
               </div>
               <div
@@ -93,7 +93,7 @@ export default function AuthModal({ modal, closeModal, t, login, signup, subscri
               >
                 <div className="badge-popular">{t('plan_popular')}</div>
                 <h4>{t('plan_pro')}</h4>
-                <div className="plan-price">$9.99<span>{t('per_month')}</span></div>
+                <div className="plan-price">$100<span>{t('per_month')}</span></div>
                 <p>{t('plan_pro_desc')}</p>
               </div>
             </div>

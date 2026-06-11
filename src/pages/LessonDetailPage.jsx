@@ -1,5 +1,5 @@
 // src/pages/LessonDetailPage.jsx
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import Footer from '../components/Footer';
 import './LessonDetailPage.css';
 
@@ -18,6 +18,16 @@ export default function LessonDetailPage({
 }) {
   const [activeSection, setActiveSection] = useState('dialogue');
   const [localSpeaking, setLocalSpeaking] = useState(false);
+  const [revealedAnswers, setRevealedAnswers] = useState({});
+  const [selectedOptions, setSelectedOptions] = useState({});
+
+  const toggleReveal = useCallback((idx) => {
+    setRevealedAnswers(prev => ({ ...prev, [idx]: !prev[idx] }));
+  }, []);
+
+  const selectOption = useCallback((exIdx, optIdx) => {
+    setSelectedOptions(prev => ({ ...prev, [exIdx]: optIdx }));
+  }, []);
 
   if (!lesson) {
     goPage('lessons');
@@ -51,11 +61,18 @@ export default function LessonDetailPage({
     }
   };
 
+  // NEW
+  const detectLang = (text) => {
+    if (/[\u0600-\u06FF]/.test(text)) return 'ar-SA';
+    if (/[ñáéíóúüÑÁÉÍÓÚÜ¿¡]/.test(text) || /\b(el|la|de|en|con|que|por|un|una|las|los)\b/i.test(text)) return 'es-ES';
+    return 'en-US';
+  };
+
   const speakLine = (text) => {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const utt = new SpeechSynthesisUtterance(text);
-    utt.lang = 'ar-SA';
+    utt.lang = detectLang(text);
     utt.rate = 0.82;
     window.speechSynthesis.speak(utt);
   };
@@ -219,9 +236,18 @@ export default function LessonDetailPage({
                   </div>
                   <div className="vocab-divider" />
                   <div className="vocab-en">
-                    <span>{v.en}</span>
+                    <span>🇬🇧 {v.en}</span>
                     {renderSpeakButton(v.en)}
                   </div>
+                  {v.es && (
+                    <>
+                      <div className="vocab-divider" />
+                      <div className="vocab-en" style={{ color: 'var(--accent, #e07b39)' }}>
+                        <span>🇪🇸 {v.es}</span>
+                        {renderSpeakButton(v.es)}
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
@@ -258,85 +284,131 @@ export default function LessonDetailPage({
           <div className="content-box">
             <h2 className="content-box-title">{t('section_exercises')}</h2>
 
-            {lesson.content.exercises.map((ex, i) => (
-              <div key={i} className="exercise-card">
-                <div className="exercise-speaker">{getExerciseSpeaker(ex)}</div>
-                <div className="exercise-num">تمرين {i + 1}</div>
-                <div className="exercise-question-row">
-                  <p className="exercise-question">{ex.question}</p>
-                  {renderSpeakButton(ex.question)}
+            {lesson.content.exercises.map((ex, i) => {
+              const revealed = !!revealedAnswers[i];
+              const selected = selectedOptions[i];
+              return (
+                <div key={i} className="exercise-card">
+                  <div className="exercise-speaker">{getExerciseSpeaker(ex)}</div>
+                  <div className="exercise-num">{t('exercise_label')} {i + 1}</div>
+                  <div className="exercise-question-row">
+                    <p className="exercise-question">{ex.question}</p>
+                    {renderSpeakButton(ex.question)}
+                  </div>
+
+                  {/* Multiple choice — user selects, then reveal */}
+                  {ex.type === 'choice' && ex.options && (
+                    <div className="choice-options">
+                      {ex.options.map((opt, j) => {
+                        const isCorrect = opt.includes('✓');
+                        const cleanOpt = opt.replace(' ✓', '');
+                        const isSelected = selected === j;
+                        let cls = 'choice-opt';
+                        if (revealed) {
+                          if (isCorrect) cls += ' correct';
+                          else if (isSelected && !isCorrect) cls += ' wrong';
+                        } else if (isSelected) {
+                          cls += ' selected';
+                        }
+                        return (
+                          <div
+                            key={j}
+                            className={cls}
+                            style={{ cursor: revealed ? 'default' : 'pointer' }}
+                            onClick={() => !revealed && selectOption(i, j)}
+                          >
+                            {cleanOpt}
+                            {revealed && isCorrect && <span className="correct-mark">✓</span>}
+                            {revealed && isSelected && !isCorrect && <span className="correct-mark" style={{ color: '#e74c3c' }}>✗</span>}
+                          </div>
+                        );
+                      })}
+                      {selected !== undefined && !revealed && (
+                        <button className="btn-reveal" onClick={() => toggleReveal(i)}>
+                          {t('reveal_answer')}
+                        </button>
+                      )}
+                      {revealed && (
+                        <button className="btn-reveal btn-reveal-reset" onClick={() => {
+                          toggleReveal(i);
+                          setSelectedOptions(prev => { const n = { ...prev }; delete n[i]; return n; });
+                        }}>
+                          {t('try_again')}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Fill in the blank — hidden until reveal */}
+                  {ex.type === 'fill' && !ex.items && (
+                    <div>
+                      {!revealed ? (
+                        <button className="btn-reveal" onClick={() => toggleReveal(i)}>{t('reveal_answer')}</button>
+                      ) : (
+                        <div className="fill-answer">
+                          <span className="answer-label">{t('answer_label')}:</span>
+                          <span className="answer-text">{ex.answer}</span>
+                          <button className="btn-reveal btn-reveal-reset" style={{ marginTop: 8 }} onClick={() => toggleReveal(i)}>{t('hide_answer')}</button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Matching pairs */}
+                  {ex.type === 'matching' && ex.pairs && (
+                    <div className="matching-grid">
+                      {(ex.pairs || []).map((pair, j) => (
+                        <div key={j} className="matching-row">
+                          <span className="match-a">{pair.singular || pair.letter || pair.word || ''}</span>
+                          <span className="match-arrow">↔</span>
+                          <span className="match-b">{pair.dual || pair.word || ''}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Fill items list */}
+                  {ex.type === 'fill' && ex.items && (
+                    <div className="fill-items">
+                      {ex.items.map((item, j) => (
+                        <div key={j} className="fill-item-row">
+                          <span className="fill-dual">{item.dual}</span>
+                          <span className="fill-arrow">←</span>
+                          <span className="fill-singular">{item.singular}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Text answer — hidden until reveal */}
+                  {ex.type === 'text' && ex.answer && (
+                    <div>
+                      {!revealed ? (
+                        <button className="btn-reveal" onClick={() => toggleReveal(i)}>{t('reveal_answer')}</button>
+                      ) : (
+                        <div className="fill-answer">
+                          <span className="answer-label">{t('answer_label')}:</span>
+                          <span className="answer-text">{ex.answer}</span>
+                          <button className="btn-reveal btn-reveal-reset" style={{ marginTop: 8 }} onClick={() => toggleReveal(i)}>{t('hide_answer')}</button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Distinguish items */}
+                  {ex.type === 'distinguish' && ex.items && (
+                    <div className="distinguish-grid">
+                      {ex.items.map((item, j) => (
+                        <div key={j} className="distinguish-card">
+                          <div className="dist-word">{item.word}</div>
+                          <div className="dist-start">{item.start}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-
-                {/* Multiple choice */}
-                {ex.type === 'choice' && ex.options && (
-                  <div className="choice-options">
-                    {ex.options.map((opt, j) => (
-                      <div
-                        key={j}
-                        className={`choice-opt ${opt.includes('✓') ? 'correct' : ''}`}
-                      >
-                        {opt.replace(' ✓', '')}
-                        {opt.includes('✓') && <span className="correct-mark">✓</span>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Fill in the blank */}
-                {ex.type === 'fill' && (
-                  <div className="fill-answer">
-                    <span className="answer-label">الجواب:</span>
-                    <span className="answer-text">{ex.answer}</span>
-                  </div>
-                )}
-
-                {/* Matching pairs */}
-                {ex.type === 'matching' && ex.pairs && (
-                  <div className="matching-grid">
-                    {(ex.pairs || []).map((pair, j) => (
-                      <div key={j} className="matching-row">
-                        <span className="match-a">{pair.singular || pair.letter || pair.word || ''}</span>
-                        <span className="match-arrow">↔</span>
-                        <span className="match-b">{pair.dual || pair.word || ''}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Fill items list */}
-                {ex.type === 'fill' && ex.items && (
-                  <div className="fill-items">
-                    {ex.items.map((item, j) => (
-                      <div key={j} className="fill-item-row">
-                        <span className="fill-dual">{item.dual}</span>
-                        <span className="fill-arrow">←</span>
-                        <span className="fill-singular">{item.singular}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Text answer */}
-                {ex.type === 'text' && ex.answer && (
-                  <div className="fill-answer">
-                    <span className="answer-label">الجواب:</span>
-                    <span className="answer-text">{ex.answer}</span>
-                  </div>
-                )}
-
-                {/* Distinguish items */}
-                {ex.type === 'distinguish' && ex.items && (
-                  <div className="distinguish-grid">
-                    {ex.items.map((item, j) => (
-                      <div key={j} className="distinguish-card">
-                        <div className="dist-word">{item.word}</div>
-                        <div className="dist-start">{item.start}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

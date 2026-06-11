@@ -1,26 +1,77 @@
 // src/pages/HomePage.jsx
 import React from 'react';
 import Footer from '../components/Footer';
+import LESSONS from '../data/lessons';
 import './HomePage.css';
 
-export default function HomePage({ t, goPage, goLessons, goPacks, openModal, user, showAlert }) {
-  const handleVideoClick = (e) => {
-    if (e.target.tagName !== 'VIDEO' && e.target.tagName !== 'SOURCE') {
-      showAlert(t('video_playing'));
+export default function HomePage({ t, lang, goPage, goLessons, goPacks, openModal, openLesson, user, showAlert }) {
+
+  const PACKS_PREVIEW = [
+    {
+      id: 'free',
+      icon: '🆓',
+      titleKey: 'pack_free_title',
+      priceKey: null,
+      descKey: 'pack_free_preview_desc',
+      premium: false,
+      action: () => goLessons(),
+    },
+    {
+      id: 'medical',
+      icon: '🏥',
+      titleKey: 'plan_medical_general_title',
+      priceKey: 'price_medical_general',
+      descKey: 'plan_medical_general_desc',
+      premium: true,
+      action: () => user?.subscribed ? goLessons() : openModal('subscribe'),
+    },
+    {
+      id: 'grammar',
+      icon: '📖',
+      titleKey: 'plan_grammar_title',
+      priceKey: 'price_grammar',
+      descKey: 'plan_grammar_desc',
+      premium: true,
+      action: () => user?.subscribed ? goLessons() : openModal('subscribe'),
+    },
+    {
+      id: 'all',
+      icon: '📚',
+      titleKey: 'pack_all_title',
+      priceKey: null,
+      descKey: 'pack_all_preview_desc',
+      premium: false,
+      action: () => goPage('packs'),
+    },
+  ];
+
+  const PREVIEW_LESSONS = [
+    { icon: '👁️', titleKey: 'prev_l1_title', descKey: 'prev_l1_desc', cat: 'medical', free: true, lessonId: 1 },
+    { icon: '🔤', titleKey: 'prev_l2_title', descKey: 'prev_l2_desc', cat: 'sounds', free: true, lessonId: 2 },
+    { icon: '📖', titleKey: 'prev_l3_title', descKey: 'prev_l3_desc', cat: 'grammar', free: false, lessonId: 3 },
+    { icon: '🏥', titleKey: 'prev_l4_title', descKey: 'prev_l4_desc', cat: 'vocab', free: false, lessonId: 4 },
+  ];
+
+  const handlePreviewLessonClick = (l) => {
+    if (!user) {
+      openModal('signup');
+      return;
     }
+    const lesson = LESSONS.find(les => les.id === l.lessonId);
+    if (lesson) openLesson(lesson);
   };
+
   return (
     <div className="home-page">
       {/* ===== HERO ===== */}
-      {/* ===== HERO ===== */}
       <section className="hero">
-        <div className="hero-content">
+        <div className="hero-content" style={{ textAlign: 'center', margin: '0 auto' }}>
           <div className="hero-badge">🎓 {t('hero_badge')}</div>
           <h1 className="hero-title">
             {t('hero_title_1')} <span>{t('hero_title_2')}</span>
           </h1>
-          <p className="hero-sub">{t('hero_sub')}</p>
-          <div className="hero-btns">
+          <p className="hero-sub" style={{ margin: '0 auto 36px' }}>{t('hero_sub')}</p>
+          <div className="hero-btns" style={{ justifyContent: 'center' }}>
             <button className="btn-primary" onClick={() => user ? goLessons() : openModal('signup')}>
               {t('hero_btn1')}
             </button>
@@ -28,7 +79,7 @@ export default function HomePage({ t, goPage, goLessons, goPacks, openModal, use
               {t('hero_btn2')}
             </button>
           </div>
-          <div className="hero-stats">
+          <div className="hero-stats" style={{ justifyContent: 'center' }}>
             <div className="stat-item">
               <div className="stat-num">{t('stat1_num')}</div>
               <div className="stat-label">{t('stat1_label')}</div>
@@ -42,15 +93,6 @@ export default function HomePage({ t, goPage, goLessons, goPacks, openModal, use
               <div className="stat-label">{t('stat3_label')}</div>
             </div>
           </div>
-        </div>
-
-        {/* Hero Image */}
-        <div className="hero-image">
-          <img
-            src={`${process.env.PUBLIC_URL}/hero.png`}
-            alt={t('hero_image_alt') || "Hero illustration"}
-            className="hero-img" style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-          />
         </div>
 
         {/* Decorative floating elements */}
@@ -88,14 +130,9 @@ export default function HomePage({ t, goPage, goLessons, goPacks, openModal, use
               controls
               width="100%"
               height="auto"
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent triggering the handleVideoClick function when interacting with the video
-              }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <source
-                src={`${process.env.PUBLIC_URL}/video.webm`}
-                type="video/webm"
-              />
+              <source src={`${process.env.PUBLIC_URL}/video.webm`} type="video/webm" />
               Your browser does not support the video tag.
             </video>
           </div>
@@ -133,32 +170,114 @@ export default function HomePage({ t, goPage, goLessons, goPacks, openModal, use
       {/* ===== AVAILABLE LESSONS PREVIEW ===== */}
       <section className="section" style={{ background: 'var(--gray-50)' }}>
         <div className="section-header">
-          <div className="section-tag">محتوى تعليمي</div>
-          <h2 className="section-title">الدروس <span>المتاحة</span></h2>
-          <p className="section-sub">استعرض دروسنا وسجّل للوصول الكامل</p>
+          <div className="section-tag">{t('lessons_preview_tag')}</div>
+          <h2 className="section-title">{t('lessons_preview_title_1')} <span>{t('lessons_preview_title_2')}</span></h2>
+          <p className="section-sub">{t('lessons_preview_sub')}</p>
         </div>
         <div className="features-grid">
-          {[
-            { icon: '👁️', title: 'حساسية العين', desc: 'حوار طبي بين طبيب ومريض حول أعراض حساسية العين وعلاجها.', cat: 'طبي', free: true },
-            { icon: '🔤', title: 'حرف الباء', desc: 'تعلم رسم وقراءة حرف الباء في أشكاله المختلفة.', cat: 'أصوات', free: true },
-            { icon: '📖', title: 'المفرد والمثنى', desc: 'قاعدة المفرد والمثنى في اللغة العربية مع أمثلة تطبيقية.', cat: 'نحو', free: false },
-            { icon: '🏥', title: 'إثراء المعجم', desc: 'مفردات طبية أساسية تتعلق بطب العيون والرعاية الصحية.', cat: 'مفردات', free: false },
-          ].map((l, i) => (
+          {PREVIEW_LESSONS.map((l, i) => (
             <div
               key={i}
               className="feature-card"
               style={{ cursor: 'pointer', position: 'relative' }}
-              onClick={() => openModal('login')}
+              onClick={() => handlePreviewLessonClick(l)}
             >
               <div style={{ position: 'absolute', top: 14, left: 14, background: l.free ? 'var(--success)' : 'var(--warning)', color: 'white', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
-                {l.free ? 'مجاني' : 'مميز ⭐'}
+                {l.free ? t('free_badge') : `${t('premium_badge')} ⭐`}
               </div>
               <div className="feature-icon">{l.icon}</div>
-              <h3>{l.title}</h3>
-              <p>{l.desc}</p>
-              <div style={{ marginTop: 12, fontSize: 12, color: 'var(--primary)', fontWeight: 700 }}>
-                🔒 سجّل للوصول
-              </div>
+              <h3>{t(l.titleKey)}</h3>
+              <p>{t(l.descKey)}</p>
+              {!user && (
+                <div style={{ marginTop: 12, fontSize: 12, color: 'var(--primary)', fontWeight: 700 }}>
+                  🔒 {t('register_to_access')}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ===== PACKAGES PREVIEW ===== */}
+      <section className="section" >
+        <div className="section-header">
+          <div className="section-tag">{t('pack_tag')}</div>
+          <h2 className="section-title">{t('pack_title_1')} <span>{t('pack_title_2')}</span></h2>
+          <p className="section-sub">{t('pack_sub')}</p>
+        </div>
+        <div className="features-grid">
+          {PACKS_PREVIEW.map((pack, i) => (
+            <div
+              key={i}
+              className={`feature-card${pack.premium ? ' pack-home-premium' : ''}`}
+              style={{
+                position: 'relative',
+                cursor: 'pointer',
+                height: '370px',
+                display: 'flex',
+                flexDirection: 'column'
+              }}
+              onClick={pack.action}
+            >
+              {pack.premium && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 14,
+                    left: 14,
+                    background: 'var(--accent)',
+                    color: 'white',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: '3px 10px',
+                    borderRadius: 20
+                  }}
+                >
+                  ⭐ {t('premium_badge')}
+                </div>
+              )}
+
+              <div className="feature-icon">{pack.icon}</div>
+              <h3>{t(pack.titleKey)}</h3>
+
+              {pack.priceKey && (
+                <div
+                  style={{
+                    fontSize: 22,
+                    fontWeight: 800,
+                    color: 'var(--primary)',
+                    margin: '8px 0 4px'
+                  }}
+                >
+                  {t(pack.priceKey)}
+                  <span
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 400,
+                      color: 'var(--gray-400)'
+                    }}
+                  >
+                    {' '}
+                    {t('per_month')}
+                  </span>
+                </div>
+              )}
+
+              <p style={{ fontSize: 13, color: 'var(--gray-500)' }}>
+                {t(pack.descKey)}
+              </p>
+
+              <button
+                className="btn-primary"
+                style={{
+                  marginTop: 'auto',
+                  width: '100%',
+                  fontSize: 13
+                }}
+                onClick={pack.action}
+              >
+                {pack.premium ? t('pack_button_subscribe') : t('pack_button_view')}
+              </button>
             </div>
           ))}
         </div>

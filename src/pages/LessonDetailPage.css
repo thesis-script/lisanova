@@ -662,3 +662,55 @@ body.lang-es .exercise-card { border-left: 4px solid var(--primary); }
   .detail-tabs { padding: 0 4%; }
   .vocab-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
 }
+
+/* === Exercise interactive styles === */
+.choice-opt.selected {
+  background: rgba(37,99,235,0.08);
+  border-color: var(--primary);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.choice-opt.wrong {
+  background: rgba(231,76,60,0.08);
+  border-color: #e74c3c;
+  color: #c0392b;
+}
+
+.btn-reveal {
+  margin-top: 12px;
+  padding: 9px 20px;
+  border-radius: var(--radius);
+  border: 2px solid var(--primary);
+  background: transparent;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+
+.btn-reveal:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-reveal-reset {
+  border-color: var(--gray-400);
+  color: var(--gray-600);
+}
+
+.btn-reveal-reset:hover {
+  background: var(--gray-200);
+  color: var(--gray-800);
+}
+
+/* Vocab Spanish row */
+.vocab-en[style] {
+  font-style: italic;
+}
+
+/* Pack home preview cards */
+.pack-home-premium {
+  border: 2px solid var(--accent, #e07b39) !important;
+}

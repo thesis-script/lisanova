@@ -9,6 +9,8 @@ export default function PacksPage({ t, lang, user, goPage, goLessons, openModal 
   const getLessonTitle = (lesson) => lesson.title[lang] || lesson.title.ar;
 
   const freeLessons = LESSONS.filter(lesson => !lesson.premium);
+  const medicalLessons = LESSONS.filter(lesson => lesson.cat === 'medical' || lesson.cat === 'vocab');
+  const grammarOtherLessons = LESSONS.filter(lesson => lesson.cat === 'grammar' || lesson.cat === 'sounds');
   const premiumLessons = LESSONS.filter(lesson => lesson.premium);
 
   const packs = [
@@ -22,11 +24,24 @@ export default function PacksPage({ t, lang, user, goPage, goLessons, openModal 
       buttonLabel: t('pack_button_view'),
     },
     {
-      id: 'premium',
-      icon: '⭐',
-      title: t('pack_premium_title'),
-      desc: `${premiumLessons.length} ${t('pack_lesson_count')}`,
-      lessons: premiumLessons,
+      id: 'medical_general',
+      icon: '🏥',
+      title: `${t('price_medical_general')} - ${t('plan_medical_general_title')}`,
+      desc: `${medicalLessons.length} ${t('pack_lesson_count')} - ${t('plan_medical_general_desc')}`,
+      lessons: [...medicalLessons], // Medical and vocab lessons
+      action: () => {
+        if (user?.subscribed) goLessons();
+        else openModal('subscribe');
+      },
+      buttonLabel: user?.subscribed ? t('pack_button_view') : t('pack_button_subscribe'),
+      premium: true,
+    },
+    {
+      id: 'grammar_other',
+      icon: '📖',
+      title: `${t('price_grammar')} - ${t('plan_grammar_title')}`,
+      desc: `${grammarOtherLessons.length} ${t('pack_lesson_count')} - ${t('plan_grammar_desc')}`,
+      lessons: [...grammarOtherLessons], // Grammar and sounds lessons
       action: () => {
         if (user?.subscribed) goLessons();
         else openModal('subscribe');

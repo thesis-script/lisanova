@@ -31,10 +31,12 @@ export default function App() {
       {app.page === 'home' && (
         <HomePage
           t={app.t}
+          lang={app.lang}
           goPage={app.goPage}
           goLessons={app.goLessons}
           goPacks={app.goPacks}
           openModal={app.openModal}
+          openLesson={app.openLesson}
           user={app.user}
           showAlert={app.showAlert}
         />
